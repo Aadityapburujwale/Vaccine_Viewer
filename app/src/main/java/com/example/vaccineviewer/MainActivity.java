@@ -17,7 +17,10 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
@@ -38,8 +41,10 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.TimerTask;
 
 public class MainActivity extends AppCompatActivity implements DatePickerDialog.OnDateSetListener{
@@ -71,6 +76,7 @@ public class MainActivity extends AppCompatActivity implements DatePickerDialog.
         pick_date_btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                closeKeyboard();
                 showDatePicker();
             }
         });
@@ -78,6 +84,7 @@ public class MainActivity extends AppCompatActivity implements DatePickerDialog.
         search_btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                closeKeyboard();
                 String pinCode = pincode_editText.getText().toString();
                 String date = pick_date_btn.getText().toString();
 
@@ -88,14 +95,14 @@ public class MainActivity extends AppCompatActivity implements DatePickerDialog.
                     search_btn.setError("Please Select A Date");
                 }
                 else{
+                    search_btn.setError(null);
                     dataList.clear();
                     if(checkVaccine(pinCode,date)) {
                         Toast.makeText(MainActivity.this, "Vaccine Is Availble.", Toast.LENGTH_SHORT).show();
                     notifyToTheUser();
                     }
                     else
-                    Toast.makeText(MainActivity.this,"Vaccine Is Not Availble, Come back after Some Time.",Toast.LENGTH_SHORT).show();
-                    notifyToTheUser();
+                    Toast.makeText(MainActivity.this,"Vaccine Is Not Available.",Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -104,7 +111,7 @@ public class MainActivity extends AppCompatActivity implements DatePickerDialog.
         auto_refresh_btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                closeKeyboard();
                 String pinCode = pincode_editText.getText().toString();
                 String date = pick_date_btn.getText().toString();
 
@@ -213,11 +220,8 @@ public class MainActivity extends AppCompatActivity implements DatePickerDialog.
 
     @Override
     public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
-
-        // Replace with DateFormatter in free time
-
-        String date = (dayOfMonth<=9)?("0"+dayOfMonth):dayOfMonth + "-" + ((month>=9)?(month+1):"0"+(month+1)) + "-" + year;
-        pick_date_btn.setText(date);
+        String date = String.format("%02d-%02d-%d",dayOfMonth,month+1,year);
+         pick_date_btn.setText(date);
     }
 
     @TargetApi(Build.VERSION_CODES.M)
@@ -225,7 +229,6 @@ public class MainActivity extends AppCompatActivity implements DatePickerDialog.
         // Notification
 
         Uri defaultSound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
-
 
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this,"ID")
                 .setSmallIcon(R.drawable.vaccin_logo)
@@ -245,6 +248,16 @@ public class MainActivity extends AppCompatActivity implements DatePickerDialog.
 
         notifyToTheUser.notify(1,notificationBuilder.build());
 
+    }
+
+    void closeKeyboard(){
+
+        View view = this.getCurrentFocus();
+
+        if(view != null){
+            InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+            inputMethodManager.hideSoftInputFromWindow(view.getWindowToken(),0);
+        }
     }
 
 }
