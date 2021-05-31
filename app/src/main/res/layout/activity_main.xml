@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:paddingTop="10dp"
+    android:background="#DA9C9C"
+    tools:context=".MainActivity">
+
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Enter Pin Code: "
+        android:textSize="20sp"
+        android:padding="5dp"
+        android:textStyle="bold"
+        android:layout_marginTop="10dp"
+        android:layout_marginLeft="10dp"/>
+
+
+    <com.google.android.material.textfield.TextInputEditText
+        android:id="@+id/pincode_edittext"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="25sp"
+        android:drawableStart="@drawable/dialpad_icon"
+        android:hint="Pin Code"
+        android:layout_margin="7dp"
+        android:inputType="number"
+        android:padding="5dp"
+        android:textColor="@color/black"
+        android:maxLength="6"
+        android:background="#B8FBF2"
+        />
+
+    <Button
+        android:id="@+id/select_date_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Select Date"
+        android:layout_marginTop="10dp"
+        android:layout_gravity="center_horizontal"
+        android:textSize="16sp"
+        android:padding="5dp"
+        android:textStyle="bold"
+        android:backgroundTint="#F8025A"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center">
+
+    <Button
+        android:id="@+id/search_Btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Search"
+        android:textSize="20sp"
+        android:padding="10.5dp"
+        android:textStyle="bold"
+        android:backgroundTint="#151515"/>
+
+
+        <Button
+            android:id="@+id/auto_refresh_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Auto Refresh"
+            android:layout_marginLeft="15dp"
+            android:tooltipText="This feature will notify you when vaccine is availble for your pincode"
+            />
+
+    </LinearLayout>
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/availablity_list"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginTop="10dp"
+        />
+</LinearLayout>
