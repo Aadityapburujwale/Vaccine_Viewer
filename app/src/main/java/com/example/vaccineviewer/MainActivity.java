@@ -4,8 +4,12 @@ import android.annotation.TargetApi;
 import android.app.DatePickerDialog;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
+import android.content.Intent;
 import android.media.MediaPlayer;
+import android.media.RingtoneManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
@@ -45,8 +49,7 @@ public class MainActivity extends AppCompatActivity implements DatePickerDialog.
     RequestQueue queue;
     Button auto_refresh_btn;
 
-    boolean isVaccineAvailable;
-    boolean stopThread;
+   public volatile boolean stopThread = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,6 +76,8 @@ public class MainActivity extends AppCompatActivity implements DatePickerDialog.
         search_btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
+                stopThread = true;
                 closeKeyboard();
                 String pinCode = pincode_editText.getText().toString();
                 String date = pick_date_btn.getText().toString();
@@ -86,13 +91,10 @@ public class MainActivity extends AppCompatActivity implements DatePickerDialog.
                 else{
                     search_btn.setError(null);
                     dataList.clear();
-                    isVaccineAvailable = false;
-                    if(checkVaccine(pinCode,date,"MANUALLY")) {
-                        Toast.makeText(MainActivity.this, "Vaccine Is Available.", Toast.LENGTH_SHORT).show();
-                    }
-                    else{
-                        Toast.makeText(MainActivity.this,"Vaccine Is Not Available. Use Auto Notify Feature",Toast.LENGTH_SHORT).show();
-                    }
+                    boolean check = checkVaccine(pinCode,date,"MANUALLY");
+                    Toast.makeText(MainActivity.this,"Try Our AUTO NOTIFY Feature!",Toast.LENGTH_SHORT).show();
+
+
                 }
             }
         });
@@ -101,9 +103,8 @@ public class MainActivity extends AppCompatActivity implements DatePickerDialog.
         auto_refresh_btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                stopThread = true;
+                stopThread = false;
 
-                notifyToTheUser(11111,"Id","Vaccine Is Finding...","You Will Get Notification When Vaccine Is Available");
 
                 closeKeyboard();
                 String pinCode = pincode_editText.getText().toString();
@@ -116,9 +117,11 @@ public class MainActivity extends AppCompatActivity implements DatePickerDialog.
                     auto_refresh_btn.setError("Please Select A Date");
                 }
                 else{
+                    notifyToTheUser(11111,"Id","Vaccine Is Finding...",
+                            "You Will Get Notification When Vaccine Is Available",
+                            true,false);
                     Toast.makeText(MainActivity.this,"Auto Featured Is Turned On.\nKeep App In Backround",Toast.LENGTH_SHORT).show();
                     Toast.makeText(MainActivity.this,"Keep App Running In Backround.",Toast.LENGTH_SHORT).show();
-                    isVaccineAvailable = false;
                     ExampleRunnable runnable = new ExampleRunnable(pinCode,date);
                     new Thread(runnable).start();
                 }
@@ -171,8 +174,11 @@ public class MainActivity extends AppCompatActivity implements DatePickerDialog.
                                 int totalVaccineAvailable = sessions.getInt("available_capacity");
 
                                 if(totalVaccineAvailable>0){
-                                    isVaccineAvailable = true;
-                                    notifyToTheUser(i,"Id","Vaccine Is Available At "+centerName,"Go Fast And Book.");
+                                    notifyToTheUser(i,"Id","Vaccine Is Available At "+centerName,
+                                            "Click Here To Book Now...",false,true);
+                                    notifyToTheUser(11111,"Id","Vaccine Is Available.",
+                                            "Click Here To Book Now...",
+                                            false,true);
                                 }
 
                                 vaccinationData addData = new vaccinationData(centerName,
@@ -183,7 +189,7 @@ public class MainActivity extends AppCompatActivity implements DatePickerDialog.
 
                             }
 
-                            if(pressed.equals("AUTO") && isVaccineAvailable){
+                            if(pressed.equals("AUTO") && isVaccineAvailable()){
                                 vaccinationDataAdapter adapter = new vaccinationDataAdapter(MainActivity.this,dataList);
                                 recyclerView.setAdapter(adapter);
                             }else if(pressed.equals("MANUALLY")){
@@ -204,7 +210,17 @@ public class MainActivity extends AppCompatActivity implements DatePickerDialog.
             }
         });
         queue.add(request);
-        return isVaccineAvailable;
+
+        return isVaccineAvailable();
+    }
+
+    boolean isVaccineAvailable(){
+        for(int i=0;i<dataList.size();i++){
+            if(dataList.get(i).totalAvailableVaccin>0) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
@@ -214,18 +230,28 @@ public class MainActivity extends AppCompatActivity implements DatePickerDialog.
     }
 
     @TargetApi(Build.VERSION_CODES.M)
-    void notifyToTheUser(int nId,String Id,String title,String des){
+    void notifyToTheUser(int nId,String Id,String title,String des,boolean sticky,boolean openRegPage){
         // Notification
-        //Uri defaultSound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
-
-        MediaPlayer mp = MediaPlayer.create(this,R.raw.vaccine_tone);
+        Uri defaultSound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
 
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this,Id+nId)
-                .setSmallIcon(R.drawable.vaccin_logo)
+                .setSmallIcon(R.mipmap.ic_launcher_round)
                 .setContentTitle(title)
                 .setContentText(des)
-                .setAutoCancel(true)
-                .setPriority(NotificationCompat.PRIORITY_HIGH);
+               // .setOngoing(true)
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setCategory(NotificationCompat.CATEGORY_MESSAGE);
+               // .setContentIntent(pendingIntent);
+
+
+        if(sticky){
+            notificationBuilder.setOngoing(true);
+        }
+        if(openRegPage){
+            Intent openRegisterPage = new Intent(Intent.ACTION_VIEW, Uri.parse("https://selfregistration.cowin.gov.in"));
+            PendingIntent pendingIntent = PendingIntent.getActivity(this,1,openRegisterPage,PendingIntent.FLAG_UPDATE_CURRENT);
+            notificationBuilder.setContentIntent(pendingIntent);
+        }
 
         NotificationManager notifyToTheUser = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
@@ -235,9 +261,15 @@ public class MainActivity extends AppCompatActivity implements DatePickerDialog.
             notifyToTheUser.createNotificationChannel(notificationChannel);
         }
 
-        if(title.contains("Vaccine Is Available At"))
-        mp.start();
-        notifyToTheUser.notify(nId,notificationBuilder.build());
+        if(title.contains("Vaccine Is Available")){
+            MediaPlayer mp = MediaPlayer.create(this,R.raw.vaccine_tone);
+            mp.start();
+            notifyToTheUser.notify(nId,notificationBuilder.build());
+        }else {
+            notificationBuilder.setSound(defaultSound);
+            notifyToTheUser.notify(nId,notificationBuilder.build());
+        }
+
     }
 
 
@@ -263,14 +295,13 @@ public class MainActivity extends AppCompatActivity implements DatePickerDialog.
 
         @Override
         public void run() {
-            while(stopThread) {
+            while(!stopThread) {
+                if(stopThread) break;
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-
-                            stopThread = !checkVaccine(pinCode,date,"AUTO");
-                            if(!stopThread) return;
-
+                            stopThread = checkVaccine(pinCode,date,"AUTO");
+                            if(stopThread) return;
                         }
                     });
 
@@ -280,7 +311,7 @@ public class MainActivity extends AppCompatActivity implements DatePickerDialog.
                     e.printStackTrace();
                 }
             }
-            if(!stopThread) return;
+            if(stopThread) return;
         }
     }
 

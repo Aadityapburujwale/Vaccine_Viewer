@@ -37,7 +37,7 @@ public class vaccinationDataAdapter extends RecyclerView.Adapter<vaccinationData
         holder.vaccineNameTextView.setText("Vaccine Name :"+dataList.get(position).vaccineName);
         holder.vaccinePriceTextView.setText(dataList.get(position).vaccinePrice);
         holder.minimumAgeLimitTextView.setText("Age :"+dataList.get(position).minimumAgeLimit +"+");
-        holder.totalAvailableVaccineTextView.setText("Available Vaccine :"+dataList.get(position).totalAvailableVaccin+"+");
+        holder.totalAvailableVaccineTextView.setText("Available Vaccine :"+dataList.get(position).totalAvailableVaccin);
     }
 
     @Override
