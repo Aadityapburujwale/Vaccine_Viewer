@@ -48,6 +48,16 @@
         android:textStyle="bold"
         android:backgroundTint="#F8025A"/>
 
+    <CheckBox
+        android:id="@+id/include_paid_checkbox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Include Paid Vaccine's"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:layout_gravity="center_horizontal
+"/>
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

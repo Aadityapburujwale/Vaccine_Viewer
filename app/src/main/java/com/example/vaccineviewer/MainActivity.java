@@ -16,6 +16,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.DatePicker;
 import android.widget.Toast;
 
@@ -48,6 +49,7 @@ public class MainActivity extends AppCompatActivity implements DatePickerDialog.
     RecyclerView recyclerView;
     RequestQueue queue;
     Button auto_refresh_btn;
+    CheckBox include_paid_vaccine;
 
    public volatile boolean stopThread = false;
 
@@ -60,6 +62,7 @@ public class MainActivity extends AppCompatActivity implements DatePickerDialog.
         search_btn = findViewById(R.id.search_Btn);
         pick_date_btn = findViewById(R.id.select_date_btn);
         auto_refresh_btn = findViewById(R.id.auto_refresh_btn);
+        include_paid_vaccine = findViewById(R.id.include_paid_checkbox);
 
         recyclerView = findViewById(R.id.availablity_list);
         recyclerView.setLayoutManager(new LinearLayoutManager(MainActivity.this));
@@ -144,6 +147,8 @@ public class MainActivity extends AppCompatActivity implements DatePickerDialog.
 
    public boolean checkVaccine(String pinCode,String data,String pressed){
 
+        boolean includePaidVaccine = include_paid_vaccine.isChecked();
+
        dataList.clear();
 
         String url = "https://cdn-api.co-vin.in/api/v2/appointment/sessions/public/calendarByPin?pincode="+pinCode+"&date="+data;
@@ -167,6 +172,8 @@ public class MainActivity extends AppCompatActivity implements DatePickerDialog.
                                 String vaccinationStartTime = centers.getString("from");
                                 String vaccinationEndTime = centers.getString("to");
                                 String vaccinePrice = centers.getString("fee_type");
+
+                                if(vaccinePrice.equalsIgnoreCase("Paid") && !includePaidVaccine) continue;
 
                                 JSONObject sessions = centers.getJSONArray("sessions").getJSONObject(0);
                                 int minimumAge = sessions.getInt("min_age_limit");
